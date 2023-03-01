@@ -10,6 +10,14 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="overflow-hidden overflow-x-auto p-6 bg-white border-b border-gray-200">
                     <div class="min-w-full align-middle">
+                        @auth
+                            <div class="pb-6">
+                                <button id="export-button" class="bg-blue-600 text-white rounded px-4 py-3 mr-4" type="button">
+                                    Export PDF
+                                </button>
+                                <span id="export-status" class="font-bold"></span>
+                            </div>
+                        @endauth
                         <table class="min-w-full divide-y divide-gray-200 border">
                             <thead>
                             <tr>
@@ -45,4 +53,32 @@
             </div>
         </div>
     </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            var channel = window.Echo.private('App.Models.User.' + {{ auth()->id() }});
+
+            channel.listen('ExportPdfStatusUpdated', function (e) {
+                console.log(e)
+                var span = document.getElementById('export-status');
+
+                if (e.link !== null) {
+                    var link_template = `<a href="${e.link}" target="_blank" class="text-blue-600 underline">${e.link}</a>`;
+
+                    span.innerHTML = e.message + ' ' + link_template;
+
+                    return
+                }
+
+                span.innerHTML = e.message;
+            });
+
+            var button = document.getElementById('export-button');
+
+            button.addEventListener('click', function () {
+                axios.post('/api/export-pdf', { headers: {
+                        'Accept': 'application/json'
+                    }});
+            });
+        })
+    </script>
 </x-app-layout>
